@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Footer from './Footer'
-import PlaidLink from './PlaidLink'
+import Chimoney from './Chimoney'
 
 const Sidebar = ({ user }: SiderbarProps) => {
   const pathname = usePathname();
@@ -22,7 +22,7 @@ const Sidebar = ({ user }: SiderbarProps) => {
             alt="ChiExpress logo"
             className="size-[24px] max-xl:size-14"
           />
-          <h1 className="sidebar-logo">Chimoney Express</h1>
+          <h3 className="sidebar-logo">Chimoney Express</h3>
         </Link>
 
         {sidebarLinks.map((item) => {
@@ -49,7 +49,7 @@ const Sidebar = ({ user }: SiderbarProps) => {
           )
         })}
 
-        <PlaidLink user={user} />
+        {/* <Chimoney user={user} /> */}
       </nav>
 
       <Footer user={user} />

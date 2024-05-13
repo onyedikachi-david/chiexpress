@@ -3,41 +3,47 @@ import RecentTransactions from '@/components/RecentTransactions';
 import RightSidebar from '@/components/RightSidebar';
 import TotalBalanceBox from '@/components/TotalBalanceBox';
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions';
-import { getLoggedInUser } from '@/lib/actions/user.actions';
+import { getLoggedInUser, getAndSaveWalletDetails } from '@/lib/actions/user.actions';
 
 const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
   const currentPage = Number(page as string) || 1;
   const loggedIn = await getLoggedInUser();
-  const accounts = await getAccounts({ 
-    userId: loggedIn.$id 
+  const accounts = await getAccounts({
+    userId: loggedIn.$id
   })
+  // const res = getAndSaveWalletDetails()
 
-  if(!accounts) return;
-  
+  if (!accounts) return;
+
   const accountsData = accounts?.data;
   const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
 
   const account = await getAccount({ appwriteItemId })
 
+
+  // I should be able to call the Wallet document and just save the
+  // subAccountId, since it is the only required field.
+  // await getAndSaveWalletDetails(responseData.data.id, user.$id);
   return (
     <section className="home">
       <div className="home-content">
         <header className="home-header">
-          <HeaderBox 
+          <HeaderBox
             type="greeting"
             title="Welcome"
             user={loggedIn?.firstName || 'Guest'}
             subtext="Access and manage your account and transactions efficiently."
           />
 
-          <TotalBalanceBox 
+          <TotalBalanceBox
             accounts={accountsData}
             totalBanks={accounts?.totalBanks}
             totalCurrentBalance={accounts?.totalCurrentBalance}
           />
         </header>
+        x
 
-        <RecentTransactions 
+        <RecentTransactions
           accounts={accountsData}
           transactions={account?.transactions}
           appwriteItemId={appwriteItemId}
@@ -45,11 +51,12 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
         />
       </div>
 
-      <RightSidebar 
+      <RightSidebar
         user={loggedIn}
         transactions={account?.transactions}
         banks={accountsData?.slice(0, 2)}
       />
+
     </section>
   )
 }

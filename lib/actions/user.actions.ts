@@ -18,7 +18,9 @@ import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
   APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
-  APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
+  APPWRITE_WALLET_COLLECTION_ID: WALLET_COLLECTION_ID,
+  CHIMONEY_API_URL_ENDPOINT: CHIMONEY_ENDPOINT,
+  CHIMONEY_API_KEY: CHIMONEY_API_KEY,
 } = process.env;
 
 export const getUserInfo = async ({ userId }: getUserInfoProps) => {
@@ -33,7 +35,7 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 
     return parseStringify(user.documents[0]);
   } catch (error) {
-    console.log(error);
+    //console.log(error);
   }
 };
 
@@ -105,11 +107,132 @@ export async function getLoggedInUser() {
     const result = await account.get();
 
     const user = await getUserInfo({ userId: result.$id });
+    // //console.log(user);
 
     return parseStringify(user);
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return null;
+  }
+}
+
+export async function checkUserOnboarded() {
+  try {
+    // Use await inside the async function
+    const userOnboarded = await getLoggedInUser();
+    //console.log(userOnboarded);
+    if (userOnboarded) {
+      revalidatePath("/sign-in");
+      //console.log("User has subaccount", userOnboarded["hasSubAccount"]);
+      return userOnboarded["hasSubAccount"];
+    } else {
+      console.error("Something bad occurred");
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    // Handle any errors that occur during the async operation
+  }
+}
+
+export async function updateUserDetails(pin: number) {
+  try {
+    const user = await getLoggedInUser();
+    if (user) {
+      // console.log("Updating User Details", user);
+      const { database } = await createAdminClient();
+
+      const response = database.updateDocument(
+        DATABASE_ID!,
+        USER_COLLECTION_ID!,
+        user.$id,
+        {
+          hasSubAccount: true,
+          transactionPin: pin,
+        }
+      );
+      if (response.code != 400) {
+        await createChimoneyWallet(user);
+      }
+      console.log("Update user response: ", response);
+    } else {
+      console.log("Wahala");
+    }
+  } catch (error) {
+    //console.log("Wahala choke");
+  }
+}
+
+export const createWalletAccount = async ({
+  userId,
+  subAccountId,
+}: createWalletAccountProps) => {
+  try {
+    const { database } = await createAdminClient();
+    // const user = await getLoggedInUser();
+
+    const response = await database.createDocument(
+      DATABASE_ID!,
+      WALLET_COLLECTION_ID!,
+      ID.unique(),
+      {
+        user: userId,
+        subAccountId: "87513c98-eca5-4e75-b456-28627b30d07a",
+      }
+    );
+    const res = response;
+    console.log("DB collection wallet res", parseStringify(res));
+
+    return parseStringify(response);
+  } catch (error) {
+    console.log("An error occured while saving wallet to db", error);
+  }
+};
+
+async function createSubAccount(user: User) {
+  const apiResponse = await fetch(`${CHIMONEY_ENDPOINT}/sub-account/create`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-API-KEY": CHIMONEY_API_KEY!,
+    },
+    body: JSON.stringify({
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: `+${user.phoneNumber}`,
+    }),
+  });
+
+  return apiResponse;
+}
+
+export async function createChimoneyWallet(user: User) {
+  try {
+    // const apiResponse = await createSubAccount(user);
+    // if (!apiResponse.ok) {
+    //   throw new Error(
+    //     `Chimoney API request failed: ${await apiResponse.json()}`
+    //   );
+    // }
+
+    const responseData: WalletsData = await apiResponse.json();
+    const res = await createWalletAccount({
+      userId: user.$id,
+      subAccountId: "responseData.data[0].owner",
+    });
+    // responseData.data.forEach((wallet) =>
+    //   createWalletAccount({
+    //     userId: user.$id,
+    //     subAccountId: wallet.owner,
+    //     balance: wallet.balance,
+    //     walletType: wallet.type,
+    //   })
+    // );
+    return responseData;
+  } catch (error) {
+    console.error("Error in createSubAccount:", error);
   }
 }
 
@@ -141,39 +264,76 @@ export const createLinkToken = async (user: User) => {
 
     return parseStringify({ linkToken: response.data.link_token });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
   }
 };
 
-export const createBankAccount = async ({
-  userId,
-  bankId,
-  accountId,
-  accessToken,
-  fundingSourceUrl,
-  shareableId,
-}: createBankAccountProps) => {
+export const getWalletDetails = async (subAccountId: string) => {
   try {
-    const { database } = await createAdminClient();
+    const response = await fetch(`${CHIMONEY_ENDPOINT}/wallets/list`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-API-KEY": CHIMONEY_API_KEY!,
+      },
+      body: JSON.stringify({
+        subAccountId,
+      }),
+    });
 
-    const bankAccount = await database.createDocument(
-      DATABASE_ID!,
-      BANK_COLLECTION_ID!,
-      ID.unique(),
-      {
-        userId,
-        bankId,
-        accountId,
-        accessToken,
-        fundingSourceUrl,
-        shareableId,
-      }
-    );
-
-    return parseStringify(bankAccount);
+    const apiResponse: WalletsData = await response.json();
+    if (apiResponse.status === "success") {
+      return apiResponse;
+    } else {
+      console.error("Something went wrong");
+    }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
+};
+
+export const getAndSaveWalletDetails = async (
+  subAccountId: string,
+  user: string
+) => {
+  try {
+    const response = await fetch(`${CHIMONEY_ENDPOINT}/wallets/list`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-API-KEY": CHIMONEY_API_KEY!,
+      },
+      body: JSON.stringify({
+        subAccountId,
+      }),
+    });
+
+    const apiResponse: WalletsData = await response.json();
+    apiResponse.data.forEach((wallet) =>
+      createWalletAccount({
+        userId: user,
+        subAccountId,
+        balance: wallet.balance,
+        walletType: wallet.type,
+      })
+    );
+    return apiResponse;
+
+    // if (apiResponse.status === "success") {
+    //   // Save to db
+    //   // apiResponse.data.forEach((wallet) =>
+    //   //   createWalletAccount({
+    //   //     userId: user,
+    //   //     subAccountId,
+    //   //     balance: wallet.balance,
+    //   //     walletType: wallet.type,
+    //   //   })
+    //   // );
+    // } else {
+    // }
+  } catch (error) {}
 };
 
 export const exchangePublicToken = async ({
@@ -246,13 +406,13 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 
     const banks = await database.listDocuments(
       DATABASE_ID!,
-      BANK_COLLECTION_ID!,
+      WALLET_COLLECTION_ID!,
       [Query.equal("userId", [userId])]
     );
 
     return parseStringify(banks.documents);
   } catch (error) {
-    console.log(error);
+    //console.log(error);
   }
 };
 
@@ -262,13 +422,13 @@ export const getBank = async ({ documentId }: getBankProps) => {
 
     const bank = await database.listDocuments(
       DATABASE_ID!,
-      BANK_COLLECTION_ID!,
+      WALLET_COLLECTION_ID!,
       [Query.equal("$id", [documentId])]
     );
 
     return parseStringify(bank.documents[0]);
   } catch (error) {
-    console.log(error);
+    //console.log(error);
   }
 };
 
@@ -280,7 +440,7 @@ export const getBankByAccountId = async ({
 
     const bank = await database.listDocuments(
       DATABASE_ID!,
-      BANK_COLLECTION_ID!,
+      WALLET_COLLECTION_ID!,
       [Query.equal("accountId", [accountId])]
     );
 
@@ -288,6 +448,6 @@ export const getBankByAccountId = async ({
 
     return parseStringify(bank.documents[0]);
   } catch (error) {
-    console.log(error);
+    //console.log(error);
   }
 };

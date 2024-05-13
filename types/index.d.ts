@@ -11,7 +11,9 @@ declare type SignUpParams = {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
   password: string;
+  hasSubAccount: boolean;
 };
 
 declare type LoginUser = {
@@ -23,17 +25,11 @@ declare type User = {
   $id: string;
   email: string;
   userId: string;
-  dwollaCustomerUrl: string;
-  dwollaCustomerId: string;
   firstName: string;
   lastName: string;
   name: string;
-  address1: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  dateOfBirth: string;
-  ssn: string;
+  phoneNumber: number;
+  hasSubAccount: boolean;
 };
 
 declare type NewUserParams = {
@@ -167,10 +163,9 @@ declare interface PaginationProps {
   totalPages: number;
 }
 
-declare interface PlaidLinkProps {
+declare interface ChimoneyProps {
   user: User;
   variant?: "primary" | "ghost";
-  dwollaCustomerId?: string;
 }
 
 // declare type User = sdk.Models.Document & {
@@ -302,13 +297,90 @@ declare interface exchangePublicTokenProps {
   user: User;
 }
 
-declare interface createBankAccountProps {
-  accessToken: string;
+declare interface createWalletAccountProps {
   userId: string;
-  accountId: string;
-  bankId: string;
-  fundingSourceUrl: string;
-  shareableId: string;
+  subAccountId: string;
+}
+
+// Interface for the TransactionMeta
+declare interface TransactionMeta {
+  date: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+}
+
+// Interface for the Transaction
+declare interface Transaction {
+  amount: number;
+  balanceBefore: number;
+  meta: TransactionMeta;
+  newBalance: number;
+  description: string;
+}
+
+// Interface for the Wallet
+declare interface Wallet {
+  id: string;
+  owner: string;
+  balance: number;
+  type: string;
+  transactions: Transaction[];
+}
+
+// Interface for the main data structure
+declare interface WalletsData {
+  status: string;
+  data: Wallet[];
+}
+
+declare interface Subscription {
+  subscription_end_timestamp: any; // Replace 'any' with the actual type if known
+  subscription_start_timestamp: any; // Replace 'any' with the actual type if known
+  id: string;
+}
+
+declare interface Meta {
+  email: string;
+}
+
+declare interface Approval {
+  // Assuming Approval is an object with its own properties
+  // Replace 'any' with the actual type if known
+  [key: string]: any;
+}
+
+declare interface UserData {
+  id: string;
+  lastName: string;
+  parent: string;
+  feePercent: number;
+  accountSecondCurrencies: any[]; // Replace 'any' with the actual type if known
+  verified: boolean;
+  subscription: Subscription;
+  isScrimUser: boolean;
+  subAccount: boolean;
+  firstName: string;
+  preferredExchangeRate: boolean;
+  uid: string;
+  approved: boolean;
+  createdDate: string;
+  joinDate: string;
+  phoneNumber: string;
+  meta: Meta;
+  approvals: Approval[];
+  name: string;
+  apiUseEnabled: boolean;
+  email: string;
+  p_id: number;
+  verification: {
+    status: string;
+  };
+}
+
+declare interface ResponseData {
+  status: string;
+  data: UserData;
 }
 
 declare interface getBanksProps {

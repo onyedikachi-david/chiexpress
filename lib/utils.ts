@@ -200,6 +200,9 @@ export const authFormSchema = (type: string) =>
     // sign up
     firstName: type === "sign-in" ? z.string().optional() : z.string().min(3),
     lastName: type === "sign-in" ? z.string().optional() : z.string().min(3),
+    phoneNumber: "sign-in"
+      ? z.string().optional()
+      : z.string().regex(/^\+\d{10,15}$/),
     // both
     email: z.string().email(),
     password: z.string().min(8),
