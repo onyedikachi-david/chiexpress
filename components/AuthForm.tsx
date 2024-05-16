@@ -80,10 +80,8 @@ const AuthForm = ({ type }: { type: string }) => {
           const userSub = await checkUserOnboarded();
           setChimoneyState(userSub);
           if (!userSub) {
-            <div className="flex flex-col gap-4">
-              <Chimoney user={user} variant="primary" />{" "}
-              {/* Todo // change this to onboardinglink*/}
-            </div>;
+
+
           } else {
             toast({
               className:
@@ -138,10 +136,7 @@ const AuthForm = ({ type }: { type: string }) => {
         if (loggedInUser) {
           const userSub = await checkUserOnboarded();
           if (!userSub) {
-            <div className="flex flex-col gap-4">
-              <Chimoney user={user} variant="primary" />{" "}
-              {/* Todo // change this to onboardinglink*/}
-            </div>;
+            setChimoneyState(userSub)
             toast({
               className:
                 "top-0 left-0 flex fixed md:max-w-[420px] bg-blue-700 opacity-70 md:top-4 md:right-4",
@@ -198,63 +193,68 @@ const AuthForm = ({ type }: { type: string }) => {
         </div>
       </header>
       <>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {type === "sign-up" && (
-              <>
-                <div className="flex gap-4">
-                  <CustomInput
-                    control={form.control}
-                    name="firstName"
-                    label="First Name"
-                    placeholder="Enter your first name"
-                  />
-                  <CustomInput
-                    control={form.control}
-                    name="lastName"
-                    label="Last Name"
-                    placeholder="Enter your first name"
-                  />
-                  <CustomInput
-                    control={form.control}
-                    name="phoneNumber"
-                    label="Phone Number"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </>
-            )}
+        {!chimoneyState ? (
+          <div className="flex flex-col gap-4">
+            <Chimoney user={user} variant="primary" /> {/* Todo // change this to onboardinglink*/}
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              {type === "sign-up" && (
+                <>
+                  <div className="flex gap-4">
+                    <CustomInput
+                      control={form.control}
+                      name="firstName"
+                      label="First Name"
+                      placeholder="Enter your first name"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="lastName"
+                      label="Last Name"
+                      placeholder="Enter your first name"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="phoneNumber"
+                      label="Phone Number"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </>
+              )}
 
-            <CustomInput
-              control={form.control}
-              name="email"
-              label="Email"
-              placeholder="Enter your email"
-            />
+              <CustomInput
+                control={form.control}
+                name="email"
+                label="Email"
+                placeholder="Enter your email"
+              />
 
-            <CustomInput
-              control={form.control}
-              name="password"
-              label="Password"
-              placeholder="Enter your password"
-            />
+              <CustomInput
+                control={form.control}
+                name="password"
+                label="Password"
+                placeholder="Enter your password"
+              />
 
-            <div className="flex flex-col gap-4">
-              <Button type="submit" disabled={isLoading} className="form-btn">
-                {isLoading ? (
-                  <>
-                    <Loader2 size={20} className="animate-spin" /> &nbsp;
-                    Loading...
-                  </>
-                ) : type === "sign-in" ? (
-                  "Sign In"
-                ) : (
-                  "Sign Up"
-                )}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              <div className="flex flex-col gap-4">
+                <Button type="submit" disabled={isLoading} className="form-btn">
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" /> &nbsp;
+                      Loading...
+                    </>
+                  ) : type === "sign-in" ? (
+                    "Sign In"
+                  ) : (
+                    "Sign Up"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>)}
 
         <footer className="flex justify-center gap-1">
           <p className="text-14 font-normal text-gray-600">
