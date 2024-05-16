@@ -2,7 +2,7 @@ import HeaderBox from '@/components/HeaderBox'
 import RecentTransactions from '@/components/RecentTransactions';
 import RightSidebar from '@/components/RightSidebar';
 import TotalBalanceBox from '@/components/TotalBalanceBox';
-import { getAccount, getAccounts } from '@/lib/actions/bank.actions';
+import { getAccount, getAccounts } from '@/lib/actions/wallet.actions';
 import { getLoggedInUser, getAndSaveWalletDetails } from '@/lib/actions/user.actions';
 
 const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
@@ -16,9 +16,10 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
   if (!accounts) return;
 
   const accountsData = accounts?.data;
-  const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+  const walletId = (id as string) || accountsData[0]?.id;
 
-  const account = await getAccount({ appwriteItemId })
+  const account = await getAccount({ walletId: "jhjdskm" })
+  console.log(accounts?.totalBalance)
 
 
   // I should be able to call the Wallet document and just save the
@@ -37,25 +38,31 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
 
           <TotalBalanceBox
             accounts={accountsData}
-            totalBanks={accounts?.totalBanks}
-            totalCurrentBalance={accounts?.totalCurrentBalance}
+            totalBanks={accounts?.totalWallets}
+            totalCurrentBalance={accounts?.totalBalance}
           />
         </header>
-        x
 
-        <RecentTransactions
+        {/* <RecentTransactions
           accounts={accountsData}
           transactions={account?.transactions}
           appwriteItemId={appwriteItemId}
           page={currentPage}
+        /> */}
+
+        <RecentTransactions
+          accounts={accountsData}
+          transactions={accountsData?.transactions}
+          walletId={walletId}
+          page={currentPage}
         />
       </div>
 
-      <RightSidebar
+      {/* <RightSidebar
         user={loggedIn}
         transactions={account?.transactions}
         banks={accountsData?.slice(0, 2)}
-      />
+      /> */}
 
     </section>
   )

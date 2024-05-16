@@ -4,16 +4,16 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 import { cn, formUrlQuery } from "@/lib/utils";
 
-export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
+export const BankTabItem = ({ account, walletId }: WalletTabItemProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const isActive = appwriteItemId === account?.appwriteItemId;
+  const isActive = walletId === account?.id;
 
   const handleBankChange = () => {
     const newUrl = formUrlQuery({
       params: searchParams.toString(),
       key: "id",
-      value: account?.appwriteItemId,
+      value: account?.id,
     });
     router.push(newUrl, { scroll: false });
   };
@@ -30,7 +30,7 @@ export const BankTabItem = ({ account, appwriteItemId }: BankTabItemProps) => {
           " text-blue-600": isActive,
         })}
       >
-        {account.name}
+        {account.type}
       </p>
     </div>
   );

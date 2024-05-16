@@ -141,6 +141,8 @@ export async function updateUserDetails(pin: number) {
       // console.log("Updating User Details", user);
       const { database } = await createAdminClient();
 
+      await createChimoneyWallet(user);
+
       const response = database.updateDocument(
         DATABASE_ID!,
         USER_COLLECTION_ID!,
@@ -150,9 +152,6 @@ export async function updateUserDetails(pin: number) {
           transactionPin: pin,
         }
       );
-      if (response.code != 400) {
-        await createChimoneyWallet(user);
-      }
       console.log("Update user response: ", response);
     } else {
       console.log("Wahala");
@@ -176,7 +175,7 @@ export const createWalletAccount = async ({
       ID.unique(),
       {
         user: userId,
-        subAccountId: "87513c98-eca5-4e75-b456-28627b30d07a",
+        subAccountId: subAccountId,
       }
     );
     const res = response;
@@ -210,26 +209,18 @@ async function createSubAccount(user: User) {
 
 export async function createChimoneyWallet(user: User) {
   try {
-    // const apiResponse = await createSubAccount(user);
-    // if (!apiResponse.ok) {
-    //   throw new Error(
-    //     `Chimoney API request failed: ${await apiResponse.json()}`
-    //   );
-    // }
+    // Creates a sub account
+    const apiResponse = await createSubAccount(user);
+    console.log(apiResponse);
+    if (!apiResponse.ok) {
+      console.error("An error occcured", apiResponse);
+    }
 
-    const responseData: WalletsData = await apiResponse.json();
+    const responseData: UserResponse = await apiResponse.json();
     const res = await createWalletAccount({
       userId: user.$id,
-      subAccountId: "responseData.data[0].owner",
+      subAccountId: responseData.data.uid,
     });
-    // responseData.data.forEach((wallet) =>
-    //   createWalletAccount({
-    //     userId: user.$id,
-    //     subAccountId: wallet.owner,
-    //     balance: wallet.balance,
-    //     walletType: wallet.type,
-    //   })
-    // );
     return responseData;
   } catch (error) {
     console.error("Error in createSubAccount:", error);
@@ -416,17 +407,17 @@ export const getBanks = async ({ userId }: getBanksProps) => {
   }
 };
 
-export const getBank = async ({ documentId }: getBankProps) => {
+export const getSubAccount = async ({ userId }: getWalletProps) => {
   try {
     const { database } = await createAdminClient();
 
-    const bank = await database.listDocuments(
+    const subAccountId = await database.listDocuments(
       DATABASE_ID!,
       WALLET_COLLECTION_ID!,
-      [Query.equal("$id", [documentId])]
+      [Query.equal("$id", [userId])]
     );
 
-    return parseStringify(bank.documents[0]);
+    return parseStringify(subAccountId.documents[0]);
   } catch (error) {
     //console.log(error);
   }

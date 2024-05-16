@@ -39,6 +39,13 @@ declare type NewUserParams = {
   password: string;
 };
 
+declare type Wallet = {
+  id: string;
+  owner: string;
+  balance: number;
+  type: string;
+};
+
 declare type Account = {
   id: string;
   availableBalance: number;
@@ -53,25 +60,6 @@ declare type Account = {
   shareableId: string;
 };
 
-declare type Transaction = {
-  id: string;
-  $id: string;
-  name: string;
-  paymentChannel: string;
-  type: string;
-  accountId: string;
-  amount: number;
-  pending: boolean;
-  category: string;
-  date: string;
-  image: string;
-  type: string;
-  $createdAt: string;
-  channel: string;
-  senderBankId: string;
-  receiverBankId: string;
-};
-
 declare type Bank = {
   $id: string;
   accountId: string;
@@ -83,9 +71,9 @@ declare type Bank = {
 };
 
 declare type AccountTypes =
-  | "depository"
-  | "credit"
-  | "loan "
+  | "airtime"
+  | "momo"
+  | "chi "
   | "investment"
   | "other";
 
@@ -128,14 +116,14 @@ declare type NewDwollaCustomerParams = {
 };
 
 declare interface CreditCardProps {
-  account: Account;
+  account: Wallet;
   userName: string;
   showBalance?: boolean;
 }
 
 declare interface BankInfoProps {
-  account: Account;
-  appwriteItemId?: string;
+  account: Wallet;
+  walletId?: string;
   type: "full" | "card";
 }
 
@@ -187,9 +175,9 @@ declare interface BankDropdownProps {
   otherStyles?: string;
 }
 
-declare interface BankTabItemProps {
-  account: Account;
-  appwriteItemId?: string;
+declare interface WalletTabItemProps {
+  account: Wallet;
+  walletId?: string;
 }
 
 declare interface TotalBalanceBoxProps {
@@ -206,7 +194,7 @@ declare interface FooterProps {
 declare interface RightSidebarProps {
   user: User;
   transactions: Transaction[];
-  banks: Bank[] & Account[];
+  wallets: Wallet[];
 }
 
 declare interface SiderbarProps {
@@ -214,9 +202,9 @@ declare interface SiderbarProps {
 }
 
 declare interface RecentTransactionsProps {
-  accounts: Account[];
+  accounts: Wallet[];
   transactions: Transaction[];
-  appwriteItemId: string;
+  walletId: string;
   page: number;
 }
 
@@ -238,7 +226,7 @@ declare interface CategoryProps {
 }
 
 declare interface DoughnutChartProps {
-  accounts: Account[];
+  accounts: Wallet[];
 }
 
 declare interface PaymentTransferFormProps {
@@ -251,7 +239,7 @@ declare interface getAccountsProps {
 }
 
 declare interface getAccountProps {
-  appwriteItemId: string;
+  walletId: string;
 }
 
 declare interface getInstitutionProps {
@@ -310,11 +298,39 @@ declare interface TransactionMeta {
   };
 }
 
+declare interface Meta {
+  date: {
+    _seconds: number;
+    _nanoseconds: number;
+  };
+  issueID?: string;
+  trfMzt?: Record<string, unknown>; // Using Record<string, unknown> for an empty object with potential keys
+}
+
+// declare type Transaction = {
+//   id: string;
+//   $id: string;
+//   name: string;
+//   paymentChannel: string;
+//   type: string;
+//   accountId: string;
+//   amount: number;
+//   pending: boolean;
+//   category: string;
+//   date: string;
+//   image: string;
+//   type: string;
+//   $createdAt: string;
+//   channel: string;
+//   senderBankId: string;
+//   receiverBankId: string;
+// };
+
 // Interface for the Transaction
 declare interface Transaction {
   amount: number;
   balanceBefore: number;
-  meta: TransactionMeta;
+  meta: Meta;
   newBalance: number;
   description: string;
 }
@@ -332,6 +348,39 @@ declare interface Wallet {
 declare interface WalletsData {
   status: string;
   data: Wallet[];
+}
+
+interface UserResponse {
+  status: "success";
+  data: {
+    id: string;
+    lastName: string;
+    parent?: string; // Optional property with string type
+    feePercent: number;
+    accountSecondCurrencies: string[]; // Array of strings
+    verified: boolean;
+    subscription: {
+      subscription_end_timestamp: object;
+      subscription_start_timestamp: object;
+      id: string;
+    };
+    isScrimUser: boolean;
+    subAccount: boolean;
+    firstName: string;
+    preferredExchangeRate: boolean;
+    uid: string;
+    approved: boolean;
+    createdDate: string; // Date string in ISO 8601 format
+    joinDate: string; // Date string in ISO 8601 format
+    phoneNumber: string;
+    meta: { email: string };
+    approvals: object[]; // Array of objects
+    name: string;
+    apiUseEnabled: boolean;
+    email: string;
+    p_id: number;
+    verification: { status: "completed" };
+  };
 }
 
 declare interface Subscription {
@@ -387,8 +436,8 @@ declare interface getBanksProps {
   userId: string;
 }
 
-declare interface getBankProps {
-  documentId: string;
+declare interface getWalletProps {
+  userId: string;
 }
 
 declare interface getBankByAccountIdProps {
