@@ -1,0 +1,179 @@
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  PlaidLinkOnSuccess,
+  PlaidLinkOptions,
+  usePlaidLink,
+} from "react-plaid-link";
+import { useRouter } from "next/navigation";
+import {
+  createLinkToken,
+  exchangePublicToken,
+  getUserPinHash,
+  updateUserDetails,
+} from "@/lib/actions/user.actions";
+import Image from "next/image";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
+
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "./ui/use-toast";
+import { Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { hashPin, verifyPin } from "@/lib/utils";
+interface PinModalProps {
+  onSubmit: (pin: string) => void;
+  onClose: () => void;
+}
+const PinModal: React.FC<PinModalProps> = ({ onSubmit, onClose }) => {
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const FormSchema = z.object({
+    pin: z.string().min(4, {
+      message: "Transaction pin is required",
+    }),
+  });
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      pin: "",
+    },
+  });
+
+  enum OtpInputType {
+    password = "password",
+    text = "text",
+  }
+
+
+  async function handleSubmit(data: z.infer<typeof FormSchema>) {
+    onSubmit(data.pin);
+    // setIsLoading(true);
+    // console.info(formData)
+    // Get user pin hash from db
+    // const userPinHash = await getUserPinHash();
+
+    // compare hash to pin
+    // const hashedPin = await hashPin(Number(data.pin))
+
+    // await updateUserDetails(hashedPin);
+
+    // const match = await verifyPin(userPinHash, Number(data.pin))
+
+    // console.log("Pin match 😋😋😋😋:  ", match)
+
+
+    // console.log("Hashed pin: ", hashPin)
+
+    // if (match) {
+    // call chimoney 
+    // await payoutChimoney()
+    //   toast({
+    //     className:
+    //       "top-0 left-0 flex fixed md:max-w-[420px] bg-[#32c932] opacity-100 md:top-4 md:right-4",
+    //     title: "Successful",
+    //   });
+    // } else {
+    //   toast({
+    //     className:
+    //       "top-0 left-0 flex fixed md:max-w-[420px] bg-[#ec0808] opacity-100 md:top-4 md:right-4",
+    //     title: "Wrong pin",
+    //   });
+    // }
+    // await updateUserDetails(hashedPin);
+    // Create chimoney wallet and save.
+    //
+
+    // form.reset();
+    // setIsLoading(false);
+    // router.push("/");
+  }
+
+  return (
+    <>
+
+      <Dialog open={true} >
+        {/* <DialogTrigger>Open</DialogTrigger> */}
+        <DialogContent className="sm:max-w-[425px]">
+
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="w-2/3 space-y-6"
+            >
+              <FormField
+                control={form.control}
+                name="pin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Enter your transaction pin.</FormLabel>
+                    <FormControl>
+                      <InputOTP
+                        aria-label="password"
+                        maxLength={4}
+                        inputMode="numeric"
+                        {...field}
+                      >
+                        <InputOTPGroup typeof="password">
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </FormControl>
+                    <FormDescription>
+                      Please enter the one-time password sent to your phone.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit">
+                {isLoading ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" /> &nbsp;
+                    Sending...
+                  </>
+                ) : (
+                  "Send"
+                )}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+
+      </Dialog>
+    </>
+  );
+};
+
+export default PinModal;

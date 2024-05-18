@@ -3,6 +3,8 @@ import { type ClassValue, clsx } from "clsx";
 import qs from "query-string";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
+// const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -185,6 +187,35 @@ export function encryptId(id: string) {
 
 export function decryptId(id: string) {
   return atob(id);
+}
+
+export async function hashPin(pin: number) {
+  try {
+    const saltRounds = 10; // Adjust as needed for security vs performance trade-off
+    // bcrypt.genSalt(saltRounds, function (err, salt) {
+    //   bcrypt.hash(pin, salt, function (err, hash) {
+    //     // Store hash in your password DB.
+    //     return hash;
+    //   });
+    // });
+    const bcrypt = require("bcryptjs");
+    const hashedPin = await bcrypt.hash(String(pin), saltRounds);
+    return hashedPin;
+  } catch (error) {
+    console.error("Error hashing PIN:", error);
+    throw error;
+  }
+}
+
+export async function verifyPin(hashedPin: string, plainPin: number) {
+  try {
+    const bcrypt = require("bcryptjs");
+    const match = await bcrypt.compare(String(plainPin), hashedPin);
+    return match;
+  } catch (error) {
+    console.error("Error verifying PIN:", error);
+    throw error;
+  }
 }
 
 export const getTransactionStatus = (date: Date) => {

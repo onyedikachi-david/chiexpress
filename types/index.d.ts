@@ -169,8 +169,8 @@ declare interface AuthFormProps {
   type: "sign-in" | "sign-up";
 }
 
-declare interface BankDropdownProps {
-  accounts: Account[];
+declare interface WalletDropdownProps {
+  accounts: Wallet[];
   setValue?: UseFormSetValue<any>;
   otherStyles?: string;
 }
@@ -230,7 +230,7 @@ declare interface DoughnutChartProps {
 }
 
 declare interface PaymentTransferFormProps {
-  accounts: Account[];
+  accounts: Wallet[];
 }
 
 // Actions

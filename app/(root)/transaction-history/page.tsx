@@ -15,21 +15,41 @@ const TransactionHistory = async ({ searchParams: { id, page } }: SearchParamPro
 
   if (!accounts) return;
 
-  const accountsData = accounts?.data;
-  const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
 
-  const account = await getAccount({ appwriteItemId })
+  const accountsData = accounts?.data;
+  console.log("From transaction history:   ", accountsData[Number(id)])
+
+  // const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+  const walletId = (id as string) || accountsData[0]?.id;
+
+
+  const account = await getAccount({ walletId: "kjskds" })
 
 
   const rowsPerPage = 10;
-  const totalPages = Math.ceil(account?.transactions.length / rowsPerPage);
+  const totalPages = Math.ceil(10 / rowsPerPage);
 
   const indexOfLastTransaction = currentPage * rowsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage;
 
-  const currentTransactions = account?.transactions.slice(
-    indexOfFirstTransaction, indexOfLastTransaction
-  )
+  const parseTransactionData = (data) => {
+    return data.map(account => ({
+      ...account,
+      transactions: account.transactions.map(transaction => ({
+        ...transaction,
+        meta: {
+          ...transaction.meta,
+          date: new Date(transaction.meta.date._seconds * 1000),
+        },
+      })),
+    }));
+  };
+
+  const parsedAccounts = parseTransactionData(accountsData);
+
+
+  const currentTransactions = parsedAccounts.find(account => account.id === id)?.transactions || [];
+
   return (
     <div className="transactions">
       <div className="transactions-header">
@@ -42,18 +62,18 @@ const TransactionHistory = async ({ searchParams: { id, page } }: SearchParamPro
       <div className="space-y-6">
         <div className="transactions-account">
           <div className="flex flex-col gap-2">
-            <h2 className="text-18 font-bold text-white">{account?.data.name}</h2>
+            {/* <h2 className="text-18 font-bold text-white">{accountsData}</h2> */}
             <p className="text-14 text-blue-25">
-              {account?.data.officialName}
+              {`${loggedIn.firstName} ${loggedIn.lastName}`}
             </p>
             <p className="text-14 font-semibold tracking-[1.1px] text-white">
-              ●●●● ●●●● ●●●● {account?.data.mask}
+              ●●●● ●●●● ●●●● { }
             </p>
           </div>
 
           <div className='transactions-account-balance'>
             <p className="text-14">Current balance</p>
-            <p className="text-24 text-center font-bold">{formatAmount(account?.data.currentBalance)}</p>
+            {/* <p className="text-24 text-center font-bold">{formatAmount(accountsData[Number(id)].balance)}</p> */}
           </div>
         </div>
 

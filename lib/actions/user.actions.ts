@@ -3,7 +3,12 @@
 import { ID, Query } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../appwrite";
 import { cookies } from "next/headers";
-import { encryptId, extractCustomerIdFromUrl, parseStringify } from "../utils";
+import {
+  encryptId,
+  extractCustomerIdFromUrl,
+  hashPin,
+  parseStringify,
+} from "../utils";
 import {
   CountryCode,
   ProcessorTokenCreateRequest,
@@ -14,6 +19,7 @@ import {
 import { plaidClient } from "@/lib/plaid";
 import { revalidatePath } from "next/cache";
 import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
+import { string } from "zod";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -33,11 +39,30 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
       [Query.equal("userId", [userId])]
     );
 
+    console.log("Get Usernfo from Db", parseStringify(user.documents));
+
     return parseStringify(user.documents[0]);
   } catch (error) {
     //console.log(error);
   }
 };
+
+export async function getUserPinHash() {
+  try {
+    // await getUserInfo
+    const { account } = await createSessionClient();
+    const result = await account.get();
+
+    const user = await getUserInfo({ userId: result.$id });
+    console.log(
+      "transactionPin from get loogged in user",
+      user["transactionPin"]
+    );
+    return user["transactionPin"];
+  } catch (error) {
+    //console.log("Wahala choke");
+  }
+}
 
 export const signIn = async ({ email, password }: signInProps) => {
   try {
@@ -107,7 +132,7 @@ export async function getLoggedInUser() {
     const result = await account.get();
 
     const user = await getUserInfo({ userId: result.$id });
-    // //console.log(user);
+    console.log("User from get loogged in user", user);
 
     return parseStringify(user);
   } catch (error) {
@@ -116,13 +141,31 @@ export async function getLoggedInUser() {
   }
 }
 
+// export async function getUserSubAccountId(userId: string) {
+//   try {
+//     const { database } = await createAdminClient();
+
+//     const user = await database.listDocuments(
+//       DATABASE_ID!,
+//       WALLET_COLLECTION_ID!,
+//       [Query.equal("userId", [userId])]
+//     );
+
+//     console.log("Subaccountid from db: ", user.documents[0]);
+
+//     return parseStringify(user.documents[0]);
+//   } catch (error) {
+//     //console.log(error);
+//   }
+// }
+
 export async function checkUserOnboarded() {
   try {
     // Use await inside the async function
     const userOnboarded = await getLoggedInUser();
     //console.log(userOnboarded);
-    if (userOnboarded) {
-      revalidatePath("/sign-in");
+    if (userOnboarded["hasSubAccount"]) {
+      // revalidatePath("/sign-in");
       //console.log("User has subaccount", userOnboarded["hasSubAccount"]);
       return userOnboarded["hasSubAccount"];
     } else {
@@ -134,12 +177,13 @@ export async function checkUserOnboarded() {
   }
 }
 
-export async function updateUserDetails(pin: number) {
+export async function updateUserDetails(pin: number | string) {
   try {
     const user = await getLoggedInUser();
     if (user) {
       // console.log("Updating User Details", user);
       const { database } = await createAdminClient();
+      const pinHash = await hashPin(pin);
 
       await createChimoneyWallet(user);
 
@@ -149,7 +193,7 @@ export async function updateUserDetails(pin: number) {
         user.$id,
         {
           hasSubAccount: true,
-          transactionPin: pin,
+          transactionPin: pinHash,
         }
       );
       console.log("Update user response: ", response);
@@ -259,7 +303,8 @@ export const createLinkToken = async (user: User) => {
   }
 };
 
-export const getWalletDetails = async (subAccountId: string) => {
+export const getWalletsDetails = async (subAccountId: string) => {
+  console.log("Get wallet details, subaccount: ", subAccountId);
   try {
     const response = await fetch(`${CHIMONEY_ENDPOINT}/wallets/list`, {
       method: "POST",
@@ -269,11 +314,12 @@ export const getWalletDetails = async (subAccountId: string) => {
         "X-API-KEY": CHIMONEY_API_KEY!,
       },
       body: JSON.stringify({
-        subAccountId,
+        subAccount: subAccountId,
       }),
     });
 
     const apiResponse: WalletsData = await response.json();
+    console.log("From Get wallet Details", apiResponse);
     if (apiResponse.status === "success") {
       return apiResponse;
     } else {
@@ -283,6 +329,45 @@ export const getWalletDetails = async (subAccountId: string) => {
     console.error(error);
   }
 };
+
+export const payoutChimoney = async ({ email, amount }) => {
+  console.log("Send to chimoney payout endpoint", email, amount);
+  const res = await getLoggedInUser();
+  const userId2 = res["userId"];
+  const subAccountId = await getSubAccount({ userId: userId2 });
+
+  try {
+    const response = await fetch(`${CHIMONEY_ENDPOINT}/payouts/chimoney`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-API-KEY": CHIMONEY_API_KEY!,
+      },
+      body: JSON.stringify({
+        chimoneys: [{ valueInUSD: amount, email }],
+        subAccount: subAccountId,
+      }),
+    });
+
+    console.log("From payoutChimoney Details", parseStringify(response));
+    if (response.ok) {
+      return parseStringify(response);
+    } else {
+      console.error("Something went wrong");
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// export const getWalletDetails = async (walletId: string) => {
+//   try {
+//     const response = await fetch(`${CHIMONEY_ENDPOINT}/`)
+//   } catch (error) {
+
+//   }
+// }
 
 export const getAndSaveWalletDetails = async (
   subAccountId: string,
@@ -409,17 +494,41 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 
 export const getSubAccount = async ({ userId }: getWalletProps) => {
   try {
+    console.log("GetSubaccount user id param", userId);
     const { database } = await createAdminClient();
 
-    const subAccountId = await database.listDocuments(
+    // Fetch all documents from the collection
+    const allDocuments = await database.listDocuments(
       DATABASE_ID!,
-      WALLET_COLLECTION_ID!,
-      [Query.equal("$id", [userId])]
+      WALLET_COLLECTION_ID!
     );
 
-    return parseStringify(subAccountId.documents[0]);
+    // Filter documents to find the one matching the userId
+    const matchedDocument = allDocuments.documents.find(
+      (doc) => doc.user.userId === userId
+    );
+
+    if (!matchedDocument) {
+      throw new Error("No subaccount found for the given userId");
+    }
+
+    console.log(
+      "Get subAcccount from Db",
+      parseStringify(matchedDocument["subAccountId"])
+    );
+
+    // Extract subAccountId from each matched document
+    // const subAccountIds = matchedDocument.map((doc) => doc.subAccountId);
+
+    // console.log("Get subaccounts from Db", parseStringify(subAccountIds));
+
+    // return parseStringify(subAccountIds);
+
+    return parseStringify(matchedDocument["subAccountId"]);
   } catch (error) {
-    //console.log(error);
+    console.error(error);
+    // Handle error appropriately, maybe return null or an error object
+    return null;
   }
 };
 

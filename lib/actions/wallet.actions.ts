@@ -13,17 +13,26 @@ import { plaidClient } from "../plaid";
 import { parseStringify } from "../utils";
 
 import { getTransactionsByBankId } from "./transaction.actions";
-import { getBanks, getSubAccount, getWalletDetails } from "./user.actions";
+import {
+  getBanks,
+  getLoggedInUser,
+  getSubAccount,
+  getWalletsDetails,
+} from "./user.actions";
 
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
   try {
     // get wallet from db
-    const subAccountId = await getSubAccount({ userId });
+    const res = await getLoggedInUser();
+    const userId2 = res["userId"];
+    console.log("UserId from getAccounts in wallets:   ", userId2);
+
+    const subAccountId = await getSubAccount({ userId: userId2 });
 
     // get associated wallet details
-    const associatedWallets = await getWalletDetails(subAccountId);
-    // console.log(associatedWallets);
+    const associatedWallets = await getWalletsDetails(subAccountId);
+    console.log("Associated wallets", associatedWallets);
     const details = associatedWallets?.data.map((wallet: Wallet) => {
       const userWallet = {
         id: wallet.id,
@@ -95,7 +104,7 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 };
 
 // Get one bank account
-export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
+export const getAccount = async ({ walletId }: getAccountProps) => {
   try {
     // get bank from db
     const bank = await getBanks({ documentId: appwriteItemId });

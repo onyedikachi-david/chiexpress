@@ -26,30 +26,14 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { toast } from './ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Chimoney = ({ user, variant }: PlaidLinkProps) => {
   const router = useRouter();
 
-  const [token, setToken] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const getLinkToken = async () => {
-      const data = await createLinkToken(user);
 
-      setToken(data?.linkToken);
-    }
-
-    getLinkToken();
-  }, [user]);
-
-  const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token: string) => {
-    await exchangePublicToken({
-      publicToken: public_token,
-      user,
-    })
-
-    router.push('/');
-  }, [user])
 
   const FormSchema = z.object({
     pin: z.string().min(4, {
@@ -66,6 +50,7 @@ const Chimoney = ({ user, variant }: PlaidLinkProps) => {
   })
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    setIsLoading(true)
     // Update user details on db and Create chimoney wallet and save.
     await updateUserDetails(Number(data.pin))
     // Create chimoney wallet and save.
@@ -76,6 +61,10 @@ const Chimoney = ({ user, variant }: PlaidLinkProps) => {
       title: "Successful",
 
     })
+    form.reset()
+    setIsLoading(false)
+    router.push("/")
+
   }
 
   return (
@@ -108,7 +97,13 @@ const Chimoney = ({ user, variant }: PlaidLinkProps) => {
             )}
           />
 
-          <Button type="submit">Submit</Button>
+          <Button type="submit">{isLoading ? (
+            <>
+              <Loader2 size={20} className="animate-spin" /> &nbsp; Sending...
+            </>
+          ) : (
+            "Send"
+          )}</Button>
         </form>
       </Form>
     </>

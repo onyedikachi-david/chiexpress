@@ -7,9 +7,10 @@ import { getLoggedInUser, getAndSaveWalletDetails } from '@/lib/actions/user.act
 
 const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
   const currentPage = Number(page as string) || 1;
-  const loggedIn = await getLoggedInUser();
+  const res = await getLoggedInUser();
+  const userId = res["userId"]
   const accounts = await getAccounts({
-    userId: loggedIn.$id
+    userId
   })
   // const res = getAndSaveWalletDetails()
 
@@ -32,7 +33,7 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
           <HeaderBox
             type="greeting"
             title="Welcome"
-            user={loggedIn?.firstName || 'Guest'}
+            user={res?.firstName || 'Guest'}
             subtext="Access and manage your account and transactions efficiently."
           />
 
@@ -58,11 +59,11 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
         />
       </div>
 
-      {/* <RightSidebar
-        user={loggedIn}
-        transactions={account?.transactions}
-        banks={accountsData?.slice(0, 2)}
-      /> */}
+      <RightSidebar
+        user={res}
+        transactions={accountsData?.transactions}
+        wallets={accountsData?.slice(0, 2)}
+      />
 
     </section>
   )

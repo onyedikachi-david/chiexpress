@@ -5,11 +5,11 @@ import { getLoggedInUser } from '@/lib/actions/user.actions';
 import React from 'react'
 
 const Transfer = async () => {
-  const loggedIn = await getLoggedInUser();
+  const res = await getLoggedInUser();
+  const userId = res["userId"]
   const accounts = await getAccounts({
-    userId: loggedIn.$id
+    userId
   })
-
   if (!accounts) return;
 
   const accountsData = accounts?.data;
