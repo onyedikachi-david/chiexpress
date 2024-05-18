@@ -5,10 +5,9 @@
 - Nextjs 14+
 - Tailwind CSS
 - TypeScript
-- Husky.
-- Lint-Staged
-- Auth with Clerk
-- DrizzleORM.
+- CI.
+- Sentry
+- AppWrite (DB and Auth)
 
 ### Getting started
 
@@ -27,13 +26,13 @@ cd chimoney-fullstack-dev-challenge
 Install packages
 
 ```shell
-pnpm install
+npm install
 ```
 
 Then, you can run locally in development mode with live reload:
 
 ```shell
-pnpm run dev
+npm run dev
 ```
 
 Open <http://localhost:3000> with your favorite browser to see your project.
@@ -48,7 +47,7 @@ You are tasked with building a simple deployed web application that allows users
 
 - [x] Dashboard: Create a dashboard page where users can view their account balance, recent transactions, and perform actions such as sending and receiving payments. This could be a call to Chimoney to pull user transactions.
 
-- [ ] Send Payment: Implement a feature that allows users to send payments to other users and non-users using Chimoney's API. Users should be able to specify the recipient's account ID (through a search), email or phone number and the amount to send.
+- [x] Send Payment: Implement a feature that allows users to send payments to other users and non-users using Chimoney's API. Users should be able to specify the recipient's account ID (through a search), email or phone number and the amount to send.
 
 - [x] Receive Payment: Implement a feature that allows users to receive payments from other users. When a payment is received, it should be reflected in the user's account balance and transaction history. Consider allowing users receive Payments to their email or phone (powered by Chimoney) and cashing it into their Account in the Web App.
 

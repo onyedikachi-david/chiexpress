@@ -74,8 +74,6 @@ declare type AccountTypes =
   | "airtime"
   | "momo"
   | "chi "
-  | "investment"
-  | "other";
 
 declare type Category = "Food and Drink" | "Travel" | "Transfer";
 
@@ -181,7 +179,7 @@ declare interface WalletTabItemProps {
 }
 
 declare interface TotalBalanceBoxProps {
-  accounts: Account[];
+  accounts: Wallet[];
   totalBanks: number;
   totalCurrentBalance: number;
 }

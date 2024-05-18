@@ -1,18 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  PlaidLinkOnSuccess,
-  PlaidLinkOptions,
-  usePlaidLink,
-} from "react-plaid-link";
+
 import { useRouter } from "next/navigation";
-import {
-  createLinkToken,
-  exchangePublicToken,
-  getUserPinHash,
-  updateUserDetails,
-} from "@/lib/actions/user.actions";
-import Image from "next/image";
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
 import {
   InputOTP,
@@ -75,45 +63,7 @@ const PinModal: React.FC<PinModalProps> = ({ onSubmit, onClose }) => {
 
   async function handleSubmit(data: z.infer<typeof FormSchema>) {
     onSubmit(data.pin);
-    // setIsLoading(true);
-    // console.info(formData)
-    // Get user pin hash from db
-    // const userPinHash = await getUserPinHash();
-
-    // compare hash to pin
-    // const hashedPin = await hashPin(Number(data.pin))
-
-    // await updateUserDetails(hashedPin);
-
-    // const match = await verifyPin(userPinHash, Number(data.pin))
-
-    // console.log("Pin match 😋😋😋😋:  ", match)
-
-
-    // console.log("Hashed pin: ", hashPin)
-
-    // if (match) {
-    // call chimoney 
-    // await payoutChimoney()
-    //   toast({
-    //     className:
-    //       "top-0 left-0 flex fixed md:max-w-[420px] bg-[#32c932] opacity-100 md:top-4 md:right-4",
-    //     title: "Successful",
-    //   });
-    // } else {
-    //   toast({
-    //     className:
-    //       "top-0 left-0 flex fixed md:max-w-[420px] bg-[#ec0808] opacity-100 md:top-4 md:right-4",
-    //     title: "Wrong pin",
-    //   });
-    // }
-    // await updateUserDetails(hashedPin);
-    // Create chimoney wallet and save.
-    //
-
-    // form.reset();
-    // setIsLoading(false);
-    // router.push("/");
+   
   }
 
   return (
@@ -150,8 +100,7 @@ const PinModal: React.FC<PinModalProps> = ({ onSubmit, onClose }) => {
                       </InputOTP>
                     </FormControl>
                     <FormDescription>
-                      Please enter the one-time password sent to your phone.
-                    </FormDescription>
+Please enter your transaction pin                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

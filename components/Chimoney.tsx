@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { PlaidLinkOnSuccess, PlaidLinkOptions, usePlaidLink } from 'react-plaid-link'
 import { useRouter } from 'next/navigation';
-import { createLinkToken, exchangePublicToken, updateUserDetails } from '@/lib/actions/user.actions';
+import { updateUserDetails } from '@/lib/actions/user.actions';
 import Image from 'next/image';
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
 

@@ -43,7 +43,6 @@ const AuthForm = ({ type }: { type: string }) => {
 
   const formSchema = authFormSchema(type);
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,8 +50,6 @@ const AuthForm = ({ type }: { type: string }) => {
       password: "",
     },
   });
-
-  // 2. Define a submit handler.
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
@@ -68,8 +65,6 @@ const AuthForm = ({ type }: { type: string }) => {
         };
 
         const newUser = await signUp(userData);
-        // const userSub = await checkUserOnboarded();
-        // setChimoneyState(userSub);
         setUser(newUser);
       } else if (type === "sign-in") {
         const response = await signIn({

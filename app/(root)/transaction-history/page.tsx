@@ -17,13 +17,6 @@ const TransactionHistory = async ({ searchParams: { id, page } }: SearchParamPro
 
 
   const accountsData = accounts?.data;
-  console.log("From transaction history:   ", accountsData[Number(id)])
-
-  // const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
-  const walletId = (id as string) || accountsData[0]?.id;
-
-
-  const account = await getAccount({ walletId: "kjskds" })
 
 
   const rowsPerPage = 10;
@@ -55,19 +48,19 @@ const TransactionHistory = async ({ searchParams: { id, page } }: SearchParamPro
       <div className="transactions-header">
         <HeaderBox
           title="Transaction History"
-          subtext="See your bank details and transactions."
+          subtext={id? "See your wallet details and transactions.": "Select a wallet to view history"}
         />
       </div>
 
       <div className="space-y-6">
         <div className="transactions-account">
           <div className="flex flex-col gap-2">
-            {/* <h2 className="text-18 font-bold text-white">{accountsData}</h2> */}
+            <h2 className="text-18 font-bold text-white">Welcome</h2>
             <p className="text-14 text-blue-25">
               {`${loggedIn.firstName} ${loggedIn.lastName}`}
             </p>
             <p className="text-14 font-semibold tracking-[1.1px] text-white">
-              ●●●● ●●●● ●●●● { }
+               { id ? id : " "}
             </p>
           </div>
 

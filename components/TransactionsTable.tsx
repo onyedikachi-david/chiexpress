@@ -7,27 +7,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { transactionCategoryStyles } from "@/constants"
-import { cn, formatAmount, formatDateTime, getTransactionStatus, removeSpecialCharacters } from "@/lib/utils"
+import { cn, formatAmount, getTransactionStatus } from "@/lib/utils"
 
-const CategoryBadge = ({ category }: CategoryBadgeProps) => {
-  const {
-    borderColor,
-    backgroundColor,
-    textColor,
-    chipBackgroundColor,
-  } = transactionCategoryStyles[category as keyof typeof transactionCategoryStyles] || transactionCategoryStyles.default
 
-  return (
-    <div className={cn('category-badge', borderColor, chipBackgroundColor)}>
-      <div className={cn('size-2 rounded-full', backgroundColor)} />
-      <p className={cn('text-[12px] font-medium', textColor)}>{category}</p>
-    </div>
-  )
-}
 
 const TransactionsTable = ({ transactions }: TransactionTableProps) => {
-  console.log("Transactionssssssssss:   ", transactions)
   return (
     <Table>
       <TableHeader className="bg-[#f9fafb]">
@@ -37,15 +21,12 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
           <TableHead className="px-2">New balance</TableHead>
           <TableHead className="px-2">Balance before</TableHead>
           <TableHead className="px-2 max-md:hidden">Description</TableHead>
-          {/* <TableHead className="px-2 max-md:hidden">Category</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
         {transactions.map((t: Transaction) => {
           const status = getTransactionStatus(new Date(t.date))
           const amount = formatAmount(t.amount)
-
-          // const isDebit = t.type === 'debit';
           const isDebit = t.amount < 0;
           const isCredit = t.amount > 0;
 
@@ -67,23 +48,16 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
               </TableCell>
 
               <TableCell className="pl-2 pr-10">
-                {/* <CategoryBadge category={status} />
-                 */}
                 {t.newBalance}
               </TableCell>
 
               <TableCell className="min-w-32 pl-2 pr-10">
-                {/* {formatDateTime(new Date(t.date)).dateTime} */}
                 {t.balanceBefore}
               </TableCell>
 
               <TableCell className="pl-2 pr-10 capitalize min-w-24">
                 {t.description}
               </TableCell>
-              {/* 
-              <TableCell className="pl-2 pr-10 max-md:hidden">
-                <CategoryBadge category={t.category} />
-              </TableCell> */}
             </TableRow>
           )
         })}
