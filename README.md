@@ -14,13 +14,13 @@
 Run the following command on your local environment:
 
 ```shell
-git clone --depth=1 https://github.com/onyedikachi-david/chimoney-fullstack-dev-challenge.git
+git clone https://github.com/onyedikachi-david/chiexpress.git
 ```
 
 CD into the folder
 
 ```shell
-cd chimoney-fullstack-dev-challenge
+cd chiexpress
 ```
 
 Install packages
