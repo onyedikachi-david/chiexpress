@@ -17,7 +17,7 @@ Run the following command on your local environment:
 git clone https://github.com/onyedikachi-david/chiexpress.git
 ```
 
-CD into the folder
+cd into the folder
 
 ```shell
 cd chiexpress
@@ -29,6 +29,13 @@ Install packages
 npm install
 ```
 
+Make a copy of .env.example
+```shell
+cp .env.example .env.local
+```
+
+Create the necessary database and collections and fill them accordingly.
+
 Then, you can run locally in development mode with live reload:
 
 ```shell
@@ -38,6 +45,19 @@ npm run dev
 Open <http://localhost:3000> with your favorite browser to see your project.
 
 ### Challenge Overview
+
+1. sentry integration
+
+![Sentry](https://github.com/onyedikachi-david/chiexpress/assets/51977119/76280cd4-2318-4c37-adbc-d7fb8f77ce2c)
+
+2. Sign in page
+   
+![Sign in](https://github.com/onyedikachi-david/chiexpress/assets/51977119/abc4e260-9d42-44d8-afe3-164a0eba0f0c)
+
+4. User Dashboard
+   
+![Dashboard](https://github.com/onyedikachi-david/chiexpress/assets/51977119/28043c53-2018-4017-9a70-3ae307a3426c)
+
 
 You are tasked with building a simple deployed web application that allows users to create and manage their accounts, send and receive payments, and view transaction history. The application should be built using React with Next.js (or similar frameworks) on the frontend and Node.js with Express on the backend. Firestore/Supabase (for simplicity or another DB of your choice) will be used as the database, and the application should be deployed using Vercel/Render/Heroku/AWS/GCP etc. It should be live and viewable and have CI/CD.
 
